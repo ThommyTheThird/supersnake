@@ -43,6 +43,7 @@ package
 		
 		/*
 		 * TODO
+		 * THIS LINE IS CHANGED TO SEE IF I CORRECTLY IMPORTED THE GITHUB CLONE INTO MY IDE. LET'S HOPE SO.
 		 *** Snake kan NOG ALTIJD een 180 doen, als je cheat (snel UP en LEFT te doen in dezelfde 'tick');
 		 * 
 		 *** BLAUW kan je staart bijten en weer terugkomen.
