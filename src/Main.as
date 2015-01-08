@@ -16,7 +16,6 @@ package
 	public class Main extends Sprite
 	{
 		private var fps:int = stage.frameRate;
-		private var widthInTiles:int = stage.stageWidth
 		private var frameCounter:int = 0;
 		
 		private var died:Boolean = false;
@@ -73,6 +72,13 @@ package
 			}
 			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
+			
+			frameCounter = 0;
+			died = false;
+			mainPlayer = null;
+			mainSnakeBodyParts = null;
+			splitPlayer = null;
+			splitSnakeBodyParts = null;
 			
 			players = new Array();
 			playerParts = new Array();
@@ -180,6 +186,8 @@ package
 			} else {
 				trace("YOU BROKE OFF THE LAST PIECE OR SOMETHING? WHAT? NOW ITS JUST DEAD DUDE?");
 			}
+			
+			for each(var mPart:BodyPart in mainSnakeBodyParts) mPart.turnIntoColor(0xFF0000);
 		}
 		
 		private function resetMovements(player:int):void
@@ -198,9 +206,9 @@ package
 		}
 		
 		private function spawnPickup():void {
-			var xPos:int = Math.floor(Math.random() * stage.stageWidth);
+			var xPos:int = Math.floor(Math.random() * stage.stageWidth/4);
 			xPos -= xPos % tileSize; //make it fall neatly in a tile
-			var yPos:int = Math.floor(Math.random() * stage.stageHeight);
+			var yPos:int = Math.floor(Math.random() * stage.stageHeight/4);
 			yPos -= yPos % tileSize;
 			
 			if (isPositionFree(xPos, yPos)) {

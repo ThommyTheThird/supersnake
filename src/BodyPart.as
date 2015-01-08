@@ -37,9 +37,7 @@ package
 			this.id = ID++;
 			
 			square = new Sprite();
-			square.graphics.beginFill(0xFF0000);
-			square.graphics.drawRect(0, 0, bodySize-2, bodySize-2);
-			square.graphics.endFill();
+			turnIntoColor(0xFF00FF);
 			square.x = 1;
 			square.y = 1;
 			addChild(square);
@@ -96,7 +94,7 @@ package
 			partBehind = parentPart;
 			parentPart = oldBehind;
 			reverseMovements();
-			turnBlue();
+			turnIntoColor(0x0000FF);
 			if (oldBehind != null) parentPart.reverse();
 			else trace(id + " had no more stuff behind him and is now the new tail?");
 		}
@@ -106,9 +104,9 @@ package
 			else if (prevMovements[2])	setMovements([false, false, false, true]);
 			else if (prevMovements[3])	setMovements([false, false, true, false]);
 		}
-		public function turnBlue():void {
+		public function turnIntoColor(color:uint):void {
 			square.graphics.clear();
-			square.graphics.beginFill(0x0000FF);
+			square.graphics.beginFill(color);
 			square.graphics.drawRect(0, 0, bodySize-2, bodySize-2);
 			square.graphics.endFill();
 		}
