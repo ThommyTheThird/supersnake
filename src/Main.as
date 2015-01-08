@@ -1,5 +1,6 @@
 package
 {
+	import flash.system.System;
 	import flash.display.InteractiveObject;
 	import flash.display.Sprite;
 	import flash.events.Event;
@@ -18,7 +19,7 @@ package
 		private var widthInTiles:int = stage.stageWidth
 		private var frameCounter:int = 0;
 		
-		private var diedAlready:Boolean = false;
+		private var died:Boolean = false;
 		
 		private var tileSize:int = 20;
 		private var PLAYER_MAIN:uint = 0;
@@ -43,12 +44,9 @@ package
 		
 		/*
 		 * TODO
-		 * THIS LINE IS CHANGED TO SEE IF I CORRECTLY IMPORTED THE GITHUB CLONE INTO MY IDE. LET'S HOPE SO.
 		 *** Snake kan NOG ALTIJD een 180 doen, als je cheat (snel UP en LEFT te doen in dezelfde 'tick');
 		 * 
 		 *** BLAUW kan je staart bijten en weer terugkomen.
-		 *** BLAUW moet nog iets met pickups doen
-		 *** BLAUW moet je ook killen als je het aanraakt.
 		 */
 		
 		public function Main():void
@@ -63,6 +61,17 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onRestart);
+			startOrRestartGame();
+		}
+		
+		private function startOrRestartGame():void {
+			trace("START");
+
+			while(numChildren > 0) {
+				removeChildAt(0);
+			}
+			
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
 			
 			players = new Array();
@@ -106,10 +115,10 @@ package
 			rightText.x = 3 * textFieldWidth;
 			rightText.y = (stage.stageHeight - textFieldHeight);
 			
-			stage.addChild(upText);
-			stage.addChild(downText);
-			stage.addChild(leftText);
-			stage.addChild(rightText);
+			addChild(upText);
+			addChild(downText);
+			addChild(leftText);
+			addChild(rightText);
 		}
 		
 		private function updateTextFields():void
@@ -119,6 +128,12 @@ package
 			leftText.text = mainPlayer.movingLeft ? "LEFT PRESSED" : "NOT LEFT";
 			rightText.text = mainPlayer.movingRight ? "RIGHT PRESSED" : "NOT RIGHT";
 		}
+		private function setAllTextFields(text:String):void {
+			upText.text = text;
+			downText.text = text;
+			leftText.text = text;
+			rightText.text = text;
+		}
 		
 		private function makeMainPlayer():void
 		{
@@ -127,7 +142,7 @@ package
 			mainPlayer.setMovements([false, false, false, false]);
 			mainPlayer.x = 20 * tileSize;
 			mainPlayer.y = 15 * tileSize;
-			stage.addChild(mainPlayer);
+			addChild(mainPlayer);
 		}
 		private function makeMainSnake():void {
 			mainSnakeBodyParts = new Array();
@@ -141,7 +156,7 @@ package
 			
 			var hitIndex:int = mainSnakeBodyParts.indexOf(partHit);
 			partHit.parentPart = null; partHit.partBehind = null;
-			if (stage.contains(partHit)) stage.removeChild(partHit);
+			if (contains(partHit)) removeChild(partHit);
 			
 			var whatRemainsOfMain:Array = mainSnakeBodyParts.slice(0, hitIndex);
 			whatRemainsOfMain[whatRemainsOfMain.length - 1].partBehind = null; //chopped off
@@ -188,11 +203,47 @@ package
 			var yPos:int = Math.floor(Math.random() * stage.stageHeight);
 			yPos -= yPos % tileSize;
 			
-			pickup = new Pickup(xPos, yPos);
-			stage.addChild(pickup);
+			if (isPositionFree(xPos, yPos)) {
+				pickup = new Pickup(xPos, yPos);
+				addChild(pickup);
+			} else {
+				spawnPickup(); //this breaks the game when you somehow fill the whole screen
+			}
+		}
+		
+		private function dieImmediately():void {
+			stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
+			trace("YOU ACTUALLY, LITERALLY DIED");
+			setAllTextFields("RIP");
+		}
+		
+		private function canITurnThisWay(player:int, direction:String):Boolean {
+			if (players[player] == null) return false;
+			
+			switch(direction) {
+				case "UP":
+					return !players[player].movingDown;
+					break;
+				case "DOWN":
+					return !players[player].movingUp;
+					break;
+				case "LEFT":
+					return !players[player].movingRight;
+					break;
+				case "RIGHT":
+					return !players[player].movingLeft;
+					break;
+				default:
+					return true;
+			}
 		}
 		
 		//Event Listeners
+		private function onRestart(e:KeyboardEvent):void {
+			if (e.keyCode == Keyboard.R) startOrRestartGame();
+			if (e.keyCode == Keyboard.Q) System.exit(0);
+		}
+		
 		private function onKeyDownForMain(e:KeyboardEvent):void	{
 			switch (e.keyCode)
 			{
@@ -252,27 +303,6 @@ package
 			}
 		}
 		
-		private function canITurnThisWay(player:int, direction:String):Boolean {
-			if (players[player] == null) return false;
-			
-			switch(direction) {
-				case "UP":
-					return !players[player].movingDown;
-					break;
-				case "DOWN":
-					return !players[player].movingUp;
-					break;
-				case "LEFT":
-					return !players[player].movingRight;
-					break;
-				case "RIGHT":
-					return !players[player].movingLeft;
-					break;
-				default:
-					return true;
-			}
-		}
-		
 		private function onEnterFrame(e:Event):void
 		{
 			updateTextFields();
@@ -280,13 +310,17 @@ package
 			{
 				frameCounter = 0;
 				
+				// -- STEP
 				mainPlayer.step();
 				if (splitPlayer != null) splitPlayer.step();
 				
-				if (!diedAlready) {
+				
+				// -- DEATH CHECKS
+				if (!died) {
 					if(isPlayerOutOfBounds(PLAYER_MAIN) || isPlayerOutOfBounds(PLAYER_SPLIT)) {
 						trace("DOOD, DOOD, DOOD, DOOD, DOOD");
-						diedAlready = true;
+						setAllTextFields("DOOD");
+						died = true;
 						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
 						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
 					}
@@ -295,7 +329,7 @@ package
 					if (mainSnakeBodyParts[mainSnakeBodyParts.length - 1] != null) {
 						if (isPartOutOfBounds(mainSnakeBodyParts[mainSnakeBodyParts.length - 1])) {
 							for (var mp:uint = 0; mp < mainSnakeBodyParts.length; mp++) {
-								if (stage.contains(mainSnakeBodyParts[mp])) stage.removeChild(mainSnakeBodyParts[mp]);
+								if (contains(mainSnakeBodyParts[mp])) removeChild(mainSnakeBodyParts[mp]);
 							}
 							mainSnakeBodyParts = [];
 							mainPlayer = null;
@@ -306,7 +340,7 @@ package
 						if (splitSnakeBodyParts[0] != null) {
 							if (isPartOutOfBounds(splitSnakeBodyParts[0])) {
 								for (var sp:uint = 0; sp < splitSnakeBodyParts.length; sp++) {
-									if (stage.contains(splitSnakeBodyParts[sp])) stage.removeChild(splitSnakeBodyParts[sp]);
+									if (contains(splitSnakeBodyParts[sp])) removeChild(splitSnakeBodyParts[sp]);
 								}
 								splitSnakeBodyParts = null;
 								splitPlayer = null;
@@ -320,12 +354,30 @@ package
 					}
 				}
 				
+				
+				// -- COLLISION
 				for (var i:uint = 0; i < mainSnakeBodyParts.length; i++) {
-					var part:BodyPart = mainSnakeBodyParts[i];
-					if (part != mainPlayer && mainPlayer.hitTestObject(part) && !diedAlready) {
-						trace("OUCH at " + part.x + "," + part.y);
+					var mPart:BodyPart = mainSnakeBodyParts[i];
+					
+					if (splitPlayer != null) {
+						// player already hit himself once, and should die hitting something again
+						if (mPart != mainPlayer && mainPlayer.hitTestObject(mPart) && !died) {
+							dieImmediately();
+						}
 						
-						splitUp(part);
+						for (var s:uint = 0; s < splitSnakeBodyParts.length; s++) {
+							var sPart:BodyPart = splitSnakeBodyParts[s];
+							if (mPart.hitTestObject(sPart)) {
+								dieImmediately();
+							}
+						}
+					}else {
+						// player hasn't split up yet, so if he hits himself, split up
+						if (mPart != mainPlayer && mainPlayer.hitTestObject(mPart) && !died) {
+							trace("HIT YOURSELF at " + mPart.x + "," + mPart.y);
+							splitUp(mPart);
+						}
+						
 					}
 				}
 				
@@ -336,9 +388,9 @@ package
 						var newTail:BodyPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1].calculateExtension();
 						mainSnakeBodyParts.push(newTail);
 						mainPlayer.traceEverythingBehindYou();
-						stage.addChild(newTail);
+						addChild(newTail);
 						
-						stage.removeChild(pickup);
+						removeChild(pickup);
 						spawnPickup();
 					}
 				}
@@ -354,13 +406,22 @@ package
 			}
 			return false;
 		}
-		private function isPartOutOfBounds(part:BodyPart):Boolean {
-			if (part == null) return false;
+		private function isPartOutOfBounds(mPart:BodyPart):Boolean {
+			if (mPart == null) return false;
 			
-			if (part.x < 0 || part.y < 0 || part.x > stage.stageWidth || part.y > stage.stageHeight) {
+			if (mPart.x < 0 || mPart.y < 0 || mPart.x > stage.stageWidth || mPart.y > stage.stageHeight) {
 				return true;
 			}
 			return false;
+		}
+		private function isPositionFree(x:int, y:int):Boolean {
+			var probably:Boolean = true;
+			
+			for each(var p:BodyPart in mainSnakeBodyParts) {
+				if (p.x == x && p.y == y) probably = false;
+			}
+			
+			return probably;
 		}
 	}
 
