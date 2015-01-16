@@ -58,6 +58,7 @@ package
 			mainTf.setTextFormat(format);
 			mainTf.autoSize = TextFieldAutoSize.LEFT;
 			mainPink = new BodyPart(20); //TODO magic number
+			mainPink.turnIntoColor(Color.PINK_HEAD);
 			mainTf.y = mainPink.y = VERT_SPACING;
 			mainTf.x = (stage.stageWidth / 2) + offset;
 			mainPink.x = (stage.stageWidth / 2) - offset;

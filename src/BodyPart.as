@@ -11,7 +11,7 @@ package
 		private var bodySize:int;
 		private var square:Sprite;
 		
-		private var id:int;
+		public var id:int;
 		private static var ID:int;
 		
 		public var parentPart:BodyPart;
@@ -78,8 +78,14 @@ package
 			return [movingUp, movingDown, movingLeft, movingRight];
 		}
 		
+		public function getPrevMovements():Array
+		{
+			return prevMovements;
+		}
+		
 		public function calculateExtension():BodyPart
 		{
+			trace("part " + id + " is calcing extension at", this.x, this.y, "(" + this.x%bodySize + "," + this.y%bodySize + ")");
 			if (partBehind != null)
 			{
 				trace("There's already something behind, wtf you doing son?");
@@ -117,6 +123,30 @@ package
 				trace(id + " had no more stuff behind him and is now the new tail?");
 		}
 		
+		public function getTail():BodyPart
+		{
+			if (partBehind != null)
+			{
+				return partBehind.getTail();
+			}
+			else
+			{
+				return this;
+			}
+		}
+		
+		public function getHead():BodyPart
+		{
+			if (parentPart != null)
+			{
+				return parentPart.getHead();
+			}
+			else
+			{
+				return this;
+			}
+		}
+		
 		private function reverseMovements():void
 		{
 			if (prevMovements[0])
@@ -151,6 +181,12 @@ package
 			{
 				trace(everything);
 			}
+		}
+		public function traceLength(len:int = 0):void {
+			trace("current length (at " + id + ") " + len);
+			len++;
+			if (partBehind != null) partBehind.traceLength(len);
+			else trace("Length from head to " + id + " ----- " + len);
 		}
 	}
 

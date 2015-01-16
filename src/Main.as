@@ -1,6 +1,8 @@
 package
 {
 	import BodyPart;
+	import flash.events.TimerEvent;
+	import flash.utils.Timer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -38,7 +40,6 @@ package
 		private var splitSnakeBodyParts:Array;
 		
 		private var players:Array;
-		private var playerParts:Array;
 		
 		private var pickup:Pickup;
 		
@@ -47,6 +48,8 @@ package
 		 *** Snake kan NOG ALTIJD een 180 doen, als je cheat (snel UP en LEFT te doen in dezelfde 'tick');
 		 *
 		 *** BLAUW kan je staart bijten en weer terugkomen.
+		 *** Als main offscreen gaat null errors
+		 *** splitplayer kan 1 length zijn, dan gaat reattach fout (partbehind null) en... het is gewoon dom om 1 stukje te hebben
 		 */
 		
 		public function Main():void
@@ -76,8 +79,8 @@ package
 				removeChildAt(0);
 			}
 			stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
-			
 			prompt = null;
+			
 			frameCounter = 0;
 			died = false;
 			mainPlayer = null;
@@ -86,11 +89,9 @@ package
 			splitSnakeBodyParts = null;
 			
 			players = new Array();
-			playerParts = new Array();
 			makeMainPlayer();
 			makeMainSnake();
 			players.push(mainPlayer);
-			playerParts.push(mainSnakeBodyParts);
 			
 			//START
 			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
@@ -103,6 +104,7 @@ package
 		{
 			//var movements:Array = [false, false, false, false];
 			mainPlayer = new BodyPart(tileSize);
+			mainPlayer.turnIntoColor(Color.PINK_HEAD);
 			mainPlayer.setMovements([false, false, false, false]);
 			mainPlayer.x = 20 * tileSize;
 			mainPlayer.y = 15 * tileSize;
@@ -117,39 +119,34 @@ package
 		
 		private function splitUp(partHit:BodyPart):void
 		{
-			trace("-----SPLITTING-----");
-			trace("main intact");
-			mainPlayer.traceEverythingBehindYou();
-			
 			var hitIndex:int = mainSnakeBodyParts.indexOf(partHit);
 			partHit.parentPart = null;
 			partHit.partBehind = null;
 			if (contains(partHit))
+			{
 				removeChild(partHit);
+			}
 			
 			var whatRemainsOfMain:Array = mainSnakeBodyParts.slice(0, hitIndex);
 			whatRemainsOfMain[whatRemainsOfMain.length - 1].partBehind = null; //chopped off
 			
-			trace("remains main");
-			whatRemainsOfMain[0].traceEverythingBehindYou();
-			
 			splitSnakeBodyParts = mainSnakeBodyParts.slice(hitIndex + 1);
+			
+			mainPlayer = whatRemainsOfMain[0];
+			mainSnakeBodyParts = whatRemainsOfMain;
+			
+			for each (var mPart:BodyPart in mainSnakeBodyParts)
+			{
+				mPart.turnIntoColor(Color.RED);
+			}
+			mainPlayer.turnIntoColor(Color.RED_HEAD);
 			
 			if (splitSnakeBodyParts.length > 0)
 			{
-				trace("split before rev");
-				splitSnakeBodyParts[0].traceEverythingBehindYou();
-				
-				mainPlayer = whatRemainsOfMain[0];
-				mainSnakeBodyParts = whatRemainsOfMain;
-				
 				splitSnakeBodyParts[0].reverse();
 				splitPlayer = splitSnakeBodyParts[splitSnakeBodyParts.length - 1];
 				players[PLAYER_SPLIT] = splitPlayer;
-				trace("split reversed");
-				splitPlayer.traceEverythingBehindYou();
 				
-				mainPlayer.turnIntoColor(Color.RED_HEAD);
 				splitSnakeBodyParts[splitSnakeBodyParts.length - 1].turnIntoColor(Color.BLUE_HEAD);
 				
 				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
@@ -158,9 +155,7 @@ package
 			{
 				trace("YOU BROKE OFF THE LAST PIECE OR SOMETHING? WHAT? NOW ITS JUST DEAD DUDE?");
 			}
-			
-			for each (var mPart:BodyPart in mainSnakeBodyParts)
-				mPart.turnIntoColor(Color.RED);
+		
 		}
 		
 		private function resetMovements(player:int):void
@@ -202,7 +197,6 @@ package
 		private function dieImmediately():void
 		{
 			stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
-			trace("YOU ACTUALLY, LITERALLY DIED");
 			promptMessage(Messages.RESTART);
 		}
 		
@@ -230,6 +224,8 @@ package
 		
 		private function canITurnThisWay(player:int, direction:String):Boolean
 		{
+			//this needs to be moved to BodyPart, and it needs to check prevMovements (so he can't do a 180)
+			//in fact, the whole "here's your input" can go to BodyPart, MAIN just interprets e.keyCode -> movement attempt
 			if (players[player] == null)
 				return false;
 			
@@ -257,9 +253,9 @@ package
 		{
 			if (e.keyCode == Keyboard.R)
 				startOrRestartGame();
-			if (e.keyCode == Keyboard.Q)
+			if (e.keyCode == Keyboard.Q || e.keyCode == Keyboard.ESCAPE)
 				System.exit(0);
-			if (e.keyCode == Keyboard.C || e.keyCode == Keyboard.H || e.keyCode == Keyboard.ESCAPE)
+			if (e.keyCode == Keyboard.C || e.keyCode == Keyboard.H)
 				help.toggleVisibility();
 			if (e.keyCode == Keyboard.SPACE)
 			{
@@ -356,7 +352,6 @@ package
 				{
 					if (isPlayerOutOfBounds(PLAYER_MAIN) || isPlayerOutOfBounds(PLAYER_SPLIT))
 					{
-						trace("DOOD, DOOD, DOOD, DOOD, DOOD");
 						died = true;
 						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
 						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
@@ -405,10 +400,76 @@ package
 				// -- COLLISION
 				if (splitPlayer != null)
 				{
-					if (mainSnakeBodyParts[mainSnakeBodyParts.length - 1].hitTestObject(splitSnakeBodyParts[splitSnakeBodyParts.length - 1]))
+					if (!died)
 					{
-						trace("REATTACH REATTACH REATTACH REATTACH");
-						promptMessage(Messages.REATTACH);
+						if (mainPlayer.getTail().hitTestObject(splitPlayer))
+						{
+							trace("REATTACH REATTACH REATTACH REATTACH");
+							promptMessage(Messages.REATTACH);
+							stage.addEventListener(Event.ENTER_FRAME, animationStepPrompt);
+							var timer:Timer = new Timer(2000, 1);
+							timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void
+								{
+									died = false;
+									
+									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
+									
+									/*var biter:BodyPart = splitSnakeBodyParts.pop();
+									biter.partBehind.parentPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1];
+									biter.partBehind.setMovements(biter.getPrevMovements());
+									mainSnakeBodyParts[mainSnakeBodyParts.length - 1].partBehind = biter.partBehind;
+									removeChild(biter); //the biting part is gone
+									biter = null;*/
+									
+									//splitPlayer; //TODO something about splitplayer being 1 length
+									
+									trace(" MAIN ");
+									trace("mt", mainPlayer.getTail());
+									trace("mt id", mainPlayer.getTail().id); 
+									trace("mt loc", mainPlayer.getTail().x, mainPlayer.getTail().y);
+									
+									trace(" SPLIT ");
+									trace("s", splitPlayer);
+									trace("s id", splitPlayer.id); 
+									trace("s loc", splitPlayer.x, splitPlayer.y);
+									
+									trace(" SPLIT.BEHIND ");
+									trace("SB", splitPlayer.partBehind);
+									trace("SB id", splitPlayer.partBehind.id); 
+									trace("SB loc", splitPlayer.partBehind.x, splitPlayer.partBehind.y);
+									
+									trace("length just before hitting", mainPlayer.traceLength());
+									trace(mainPlayer.traceEverythingBehindYou([]));
+									
+									splitPlayer.partBehind.parentPart = mainPlayer.getTail();
+									mainPlayer.getTail().partBehind = splitPlayer.partBehind;
+									removeChild(splitPlayer); ///splitplayer zit nog in de splitsnake array, waardoor dat misschien collision errors geeft (hit plek blijf je op doodgaan)
+									splitPlayer = null;
+									
+									trace(mainPlayer.traceEverythingBehindYou([]));
+									trace("length just AFTER hitting", mainPlayer.traceLength());
+									
+									trace("Everything is automatically copied over");
+									mainPlayer.traceEverythingBehindYou();
+									
+									splitSnakeBodyParts = null;
+									stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
+									
+									//for each (var part:BodyPart in mainSnakeBodyParts)
+									//{
+										//part.turnIntoColor(Color.PINK);
+									//}
+									mainPlayer.turnIntoColor(Color.PINK_HEAD);
+									mainPlayer.getTail().turnIntoColor(0x123456);
+									
+									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
+									removeChild(prompt);
+									stage.addEventListener(Event.ENTER_FRAME, onEnterFrame); //resume
+								});
+							stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame); //pause a bit
+							timer.start();
+							return;
+						}
 					}
 				}
 				
@@ -449,7 +510,12 @@ package
 				{
 					if (pickup.hitTestObject(mainPlayer))
 					{
-						var newTail:BodyPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1].calculateExtension();
+						trace("hit pickup, calc ext heres whats behind main");
+						mainPlayer.traceEverythingBehindYou();
+						trace(" tail id " , mainPlayer.getTail().id);
+						
+						//var newTail:BodyPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1].calculateExtension();
+						var newTail:BodyPart = mainPlayer.getTail().calculateExtension();
 						mainSnakeBodyParts.push(newTail);
 						mainPlayer.traceEverythingBehindYou();
 						addChild(newTail);
