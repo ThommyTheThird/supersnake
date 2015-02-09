@@ -1,6 +1,8 @@
 package
 {
 	import flash.display.Sprite;
+	import flash.text.TextField;
+	import flash.text.TextFormat;
 	
 	/**
 	 * ...
@@ -11,7 +13,8 @@ package
 		private var bodySize:int;
 		private var square:Sprite;
 		
-		private var id:int;
+		private var idtf:TextField;
+		public var id:int;
 		private static var ID:int;
 		
 		public var parentPart:BodyPart;
@@ -43,6 +46,15 @@ package
 			square.x = 1;
 			square.y = 1;
 			addChild(square);
+			
+			idtf = new TextField();
+			idtf.width = 18;
+			idtf.height = 18;
+			idtf.x = 1;
+			idtf.y = 1;
+			idtf.text = id+"";
+			idtf.setTextFormat(new TextFormat(null, 10, 0xffffff));
+			addChild(idtf);
 		}
 		
 		public function step():void
@@ -65,6 +77,50 @@ package
 			}
 		}
 		
+		public function completelyDetach():void
+		{
+			if (parentPart != null) parentPart.partBehind = null;
+			if (partBehind != null) partBehind.parentPart = null;
+		}
+		
+		public function tryMove(direction:String):void
+		{
+			switch (direction)
+			{
+				case Dirs.UP: 
+					if (!prevMovements[1])
+					{
+						resetMovements();
+						this.movingUp = true;
+					}
+					break;
+				
+				case Dirs.DOWN: 
+					if (!prevMovements[0])
+					{
+						resetMovements();
+						this.movingDown = true;
+					}
+					break;
+				
+				case Dirs.LEFT: 
+					if (!prevMovements[3])
+					{
+						resetMovements();
+						this.movingLeft = true;
+					}
+					break;
+				
+				case Dirs.RIGHT: 
+					if (!prevMovements[2])
+					{
+						resetMovements();
+						this.movingRight = true;
+					}
+					break;
+			}
+		}
+		
 		public function setMovements(movements:Array):void
 		{
 			this.movingUp = movements[0];
@@ -78,8 +134,22 @@ package
 			return [movingUp, movingDown, movingLeft, movingRight];
 		}
 		
+		public function getPrevMovements():Array
+		{
+			return prevMovements;
+		}
+		
+		private function resetMovements():void
+		{
+			this.movingUp = false;
+			this.movingDown = false;
+			this.movingLeft = false;
+			this.movingRight = false;
+		}
+		
 		public function calculateExtension():BodyPart
 		{
+			trace("part " + id + " is calcing extension at", this.x, this.y);
 			if (partBehind != null)
 			{
 				trace("There's already something behind, wtf you doing son?");
@@ -129,12 +199,47 @@ package
 				setMovements([false, false, true, false]);
 		}
 		
-		public function turnIntoColor(color:uint):void
+		public function getTail():BodyPart
+		{
+			if (partBehind != null)
+			{
+				return partBehind.getTail();
+			}
+			else
+			{
+				return this;
+			}
+		}
+		
+		public function getHead():BodyPart
+		{
+			if (parentPart != null)
+			{
+				return parentPart.getHead();
+			}
+			else
+			{
+				return this;
+			}
+		}
+		
+		public function getSnake(snake:Array = null):Array
+		{
+			if (snake == null) snake = new Array();
+			
+			snake.push(this);
+			if (partBehind != null) return partBehind.getSnake(snake);
+			else 					return snake;
+		}
+		
+		public function turnIntoColor(color:uint, recursive:Boolean = false):void
 		{
 			square.graphics.clear();
 			square.graphics.beginFill(color);
 			square.graphics.drawRect(0, 0, bodySize - 2, bodySize - 2);
 			square.graphics.endFill();
+			
+			if (recursive && partBehind != null) partBehind.turnIntoColor(color, recursive);
 		}
 		
 		public function traceEverythingBehindYou(everything:Array = null):void
@@ -151,6 +256,16 @@ package
 			{
 				trace(everything);
 			}
+		}
+		
+		public function traceLength(len:int = 0):void
+		{
+			trace("current length (at " + id + ") " + len);
+			len++;
+			if (partBehind != null)
+				partBehind.traceLength(len);
+			else
+				trace("Length from head to " + id + " ----- " + len);
 		}
 	}
 

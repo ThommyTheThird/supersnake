@@ -1,6 +1,8 @@
 package
 {
 	import BodyPart;
+	import flash.events.TimerEvent;
+	import flash.utils.Timer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
@@ -29,16 +31,12 @@ package
 		private var died:Boolean = false;
 		
 		private var tileSize:int = 20;
-		private var PLAYER_MAIN:uint = 0;
-		private var PLAYER_SPLIT:uint = 1;
 		
 		private var mainPlayer:BodyPart;
-		private var mainSnakeBodyParts:Array;
 		private var splitPlayer:BodyPart;
-		private var splitSnakeBodyParts:Array;
 		
-		private var players:Array;
-		private var playerParts:Array;
+		private var mainTail:BodyPart;
+		private var splitTail:BodyPart;
 		
 		private var pickup:Pickup;
 		
@@ -47,6 +45,8 @@ package
 		 *** Snake kan NOG ALTIJD een 180 doen, als je cheat (snel UP en LEFT te doen in dezelfde 'tick');
 		 *
 		 *** BLAUW kan je staart bijten en weer terugkomen.
+		 *** Als main offscreen gaat null errors
+		 *** splitplayer kan 1 length zijn, dan gaat reattach fout (partbehind null) en... het is gewoon dom om 1 stukje te hebben
 		 */
 		
 		public function Main():void
@@ -61,7 +61,6 @@ package
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
 			// entry point
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onMenuButtons);
 			help = new HelpScreen();
 			stage.addChild(help);
 			
@@ -76,24 +75,17 @@ package
 				removeChildAt(0);
 			}
 			stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
-			
 			prompt = null;
+			
 			frameCounter = 0;
 			died = false;
 			mainPlayer = null;
-			mainSnakeBodyParts = null;
 			splitPlayer = null;
-			splitSnakeBodyParts = null;
 			
-			players = new Array();
-			playerParts = new Array();
 			makeMainPlayer();
-			makeMainSnake();
-			players.push(mainPlayer);
-			playerParts.push(mainSnakeBodyParts);
 			
 			//START
-			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
+			stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDown);
 			stage.addEventListener(Event.ENTER_FRAME, onEnterFrame);
 			
 			spawnPickup();
@@ -103,82 +95,79 @@ package
 		{
 			//var movements:Array = [false, false, false, false];
 			mainPlayer = new BodyPart(tileSize);
+			mainTail = mainPlayer;
+			mainPlayer.turnIntoColor(Color.PINK_HEAD);
 			mainPlayer.setMovements([false, false, false, false]);
 			mainPlayer.x = 20 * tileSize;
 			mainPlayer.y = 15 * tileSize;
 			addChild(mainPlayer);
 		}
 		
-		private function makeMainSnake():void
-		{
-			mainSnakeBodyParts = new Array();
-			mainSnakeBodyParts.push(mainPlayer);
-		}
-		
 		private function splitUp(partHit:BodyPart):void
 		{
-			trace("-----SPLITTING-----");
-			trace("main intact");
-			mainPlayer.traceEverythingBehindYou();
+			trace('splitup');
+			var mainSnake:Array = mainPlayer.getSnake();
+			var hitIndex:int = mainSnake.indexOf(partHit);
+			//partHit.parentPart.partBehind = null;
+			//partHit.parentPart = null;
+			//partHit.partBehind.parentPart = null;
+			//partHit.partBehind = null;
+			partHit.completelyDetach();
 			
-			var hitIndex:int = mainSnakeBodyParts.indexOf(partHit);
-			partHit.parentPart = null;
-			partHit.partBehind = null;
 			if (contains(partHit))
-				removeChild(partHit);
-			
-			var whatRemainsOfMain:Array = mainSnakeBodyParts.slice(0, hitIndex);
-			whatRemainsOfMain[whatRemainsOfMain.length - 1].partBehind = null; //chopped off
-			
-			trace("remains main");
-			whatRemainsOfMain[0].traceEverythingBehindYou();
-			
-			splitSnakeBodyParts = mainSnakeBodyParts.slice(hitIndex + 1);
-			
-			if (splitSnakeBodyParts.length > 0)
 			{
-				trace("split before rev");
-				splitSnakeBodyParts[0].traceEverythingBehindYou();
+				trace('parthit id was  ' + partHit.id + ',  deze gaat dood en weg');
+				removeChild(partHit);
+			}
+			
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
+			
+			
+			var whatRemainsOfMain:Array = mainSnake.slice(0, hitIndex);
+			trace("whatRemainsOfMain[whatRemainsOfMain.length - 1]  partbehind ==== nulllll");
+			whatRemainsOfMain[whatRemainsOfMain.length - 1].partBehind = null; //chopped off
+			mainPlayer.traceEverythingBehindYou(['main']);
+			
+			for each (var mPart:BodyPart in whatRemainsOfMain)
+			{
+				mPart.turnIntoColor(Color.RED);
+			}
+			mainPlayer.turnIntoColor(Color.RED_HEAD);
+			mainTail = mainPlayer.getTail();
+			
+			var splitSnake:Array = mainSnake.slice(hitIndex + 1);
+			if (splitSnake.length > 0)
+			{
+				splitSnake[0].parentPart = null;
+				splitSnake[0].traceEverythingBehindYou(["split[0]"]);
+				splitSnake[0].reverse();
+				splitSnake[0].traceEverythingBehindYou(["SplitSnake[0] after rev"]);
+				splitPlayer = splitSnake[splitSnake.length - 1];
+				splitPlayer.traceEverythingBehindYou(["SPLITPLAYER"]);
+				splitTail = splitPlayer.getTail();
 				
-				mainPlayer = whatRemainsOfMain[0];
-				mainSnakeBodyParts = whatRemainsOfMain;
-				
-				splitSnakeBodyParts[0].reverse();
-				splitPlayer = splitSnakeBodyParts[splitSnakeBodyParts.length - 1];
-				players[PLAYER_SPLIT] = splitPlayer;
-				trace("split reversed");
-				splitPlayer.traceEverythingBehindYou();
-				
-				mainPlayer.turnIntoColor(Color.RED_HEAD);
-				splitSnakeBodyParts[splitSnakeBodyParts.length - 1].turnIntoColor(Color.BLUE_HEAD);
-				
-				stage.addEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
+				splitPlayer.turnIntoColor(Color.BLUE_HEAD);
 			}
 			else
 			{
 				trace("YOU BROKE OFF THE LAST PIECE OR SOMETHING? WHAT? NOW ITS JUST DEAD DUDE?");
 			}
-			
-			for each (var mPart:BodyPart in mainSnakeBodyParts)
-				mPart.turnIntoColor(Color.RED);
 		}
 		
-		private function resetMovements(player:int):void
+		private function resetMovements(part:BodyPart):void
 		{
-			if (player == PLAYER_MAIN)
-			{
-				mainPlayer.movingUp = false;
-				mainPlayer.movingDown = false;
-				mainPlayer.movingLeft = false;
-				mainPlayer.movingRight = false;
-			}
-			else
-			{
-				splitPlayer.movingUp = false;
-				splitPlayer.movingDown = false;
-				splitPlayer.movingLeft = false;
-				splitPlayer.movingRight = false;
-			}
+			part.setMovements([false, false, false, false]);
 		}
 		
 		private function spawnPickup():void
@@ -202,7 +191,6 @@ package
 		private function dieImmediately():void
 		{
 			stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame);
-			trace("YOU ACTUALLY, LITERALLY DIED");
 			promptMessage(Messages.RESTART);
 		}
 		
@@ -228,24 +216,32 @@ package
 			prompt.rotationZ %= 360;
 		}
 		
-		private function canITurnThisWay(player:int, direction:String):Boolean
+		private function toggleSpeed():void
 		{
-			if (players[player] == null)
-				return false;
+			if (TICK_FRAMES == FAST)
+				TICK_FRAMES = SLOW;
+			else
+				TICK_FRAMES = FAST;
+		}
+		
+		private function canITurnThisWay(playerPart:BodyPart, direction:String):Boolean
+		{
+			//this needs to be moved to BodyPart, and it needs to check prevMovements (so he can't do a 180)
+			//in fact, the whole "here's your input" can go to BodyPart, MAIN just interprets e.keyCode -> movement attempt
 			
 			switch (direction)
 			{
 				case "UP": 
-					return !players[player].movingDown;
+					return !playerPart.movingDown;
 					break;
 				case "DOWN": 
-					return !players[player].movingUp;
+					return !playerPart.movingUp;
 					break;
 				case "LEFT": 
-					return !players[player].movingRight;
+					return !playerPart.movingRight;
 					break;
 				case "RIGHT": 
-					return !players[player].movingLeft;
+					return !playerPart.movingLeft;
 					break;
 				default: 
 					return true;
@@ -253,90 +249,63 @@ package
 		}
 		
 		//Event Listeners
-		private function onMenuButtons(e:KeyboardEvent):void
-		{
-			if (e.keyCode == Keyboard.R)
-				startOrRestartGame();
-			if (e.keyCode == Keyboard.Q)
-				System.exit(0);
-			if (e.keyCode == Keyboard.C || e.keyCode == Keyboard.H || e.keyCode == Keyboard.ESCAPE)
-				help.toggleVisibility();
-			if (e.keyCode == Keyboard.SPACE)
-			{
-				if (TICK_FRAMES == FAST)
-					TICK_FRAMES = SLOW;
-				else
-					TICK_FRAMES = FAST;
-			}
-		}
-		
-		private function onKeyDownForMain(e:KeyboardEvent):void
+		private function onKeyDown(e:KeyboardEvent):void
 		{
 			switch (e.keyCode)
 			{
-				case Keyboard.UP: 
-					if (canITurnThisWay(PLAYER_MAIN, "UP"))
-					{
-						resetMovements(PLAYER_MAIN);
-						mainPlayer.movingUp = true;
-					}
+				//MENU BUTTONS
+				case Controls.RESTART: 
+					startOrRestartGame();
 					break;
-				case Keyboard.DOWN: 
-					if (canITurnThisWay(PLAYER_MAIN, "DOWN"))
-					{
-						resetMovements(PLAYER_MAIN);
-						mainPlayer.movingDown = true;
-					}
+				case Controls.QUIT: 
+					System.exit(0);
 					break;
-				case Keyboard.LEFT: 
-					if (canITurnThisWay(PLAYER_MAIN, "LEFT"))
-					{
-						resetMovements(PLAYER_MAIN);
-						mainPlayer.movingLeft = true;
-					}
+				case Controls.HELP: 
+				case Controls.HELP_ALT: 
+				case Controls.HELP_ESC: 
+					help.toggleVisibility();
 					break;
-				case Keyboard.RIGHT: 
-					if (canITurnThisWay(PLAYER_MAIN, "RIGHT"))
-					{
-						resetMovements(PLAYER_MAIN);
-						mainPlayer.movingRight = true;
-					}
+				case Controls.TOGGLE_SPEED: 
+					toggleSpeed();
 					break;
 			}
-		}
-		
-		private function onKeyDownForSplit(e:KeyboardEvent):void
-		{
-			switch (e.keyCode)
+			
+			if (!died)
 			{
-				case Keyboard.W: 
-					if (canITurnThisWay(PLAYER_SPLIT, "UP"))
-					{
-						resetMovements(PLAYER_SPLIT);
-						splitPlayer.movingUp = true;
-					}
-					break;
-				case Keyboard.S: 
-					if (canITurnThisWay(PLAYER_SPLIT, "DOWN"))
-					{
-						resetMovements(PLAYER_SPLIT);
-						splitPlayer.movingDown = true;
-					}
-					break;
-				case Keyboard.A: 
-					if (canITurnThisWay(PLAYER_SPLIT, "LEFT"))
-					{
-						resetMovements(PLAYER_SPLIT);
-						splitPlayer.movingLeft = true;
-					}
-					break;
-				case Keyboard.D: 
-					if (canITurnThisWay(PLAYER_SPLIT, "RIGHT"))
-					{
-						resetMovements(PLAYER_SPLIT);
-						splitPlayer.movingRight = true;
-					}
-					break;
+				switch (e.keyCode)
+				{
+					// PLAYER MAIN
+					case Controls.UP_MAIN: 
+						mainPlayer.tryMove(Dirs.UP);
+						break;
+					case Controls.DOWN_MAIN: 
+						mainPlayer.tryMove(Dirs.DOWN);
+						break;
+					case Controls.LEFT_MAIN: 
+						mainPlayer.tryMove(Dirs.LEFT);
+						break;
+					case Controls.RIGHT_MAIN: 
+						mainPlayer.tryMove(Dirs.RIGHT);
+						break;
+					
+					// PLAYER SPLIT
+					case Controls.UP_SPLIT: 
+						if (splitPlayer != null)
+							splitPlayer.tryMove(Dirs.UP);
+						break;
+					case Controls.DOWN_SPLIT: 
+						if (splitPlayer != null)
+							splitPlayer.tryMove(Dirs.DOWN);
+						break;
+					case Controls.LEFT_SPLIT: 
+						if (splitPlayer != null)
+							splitPlayer.tryMove(Dirs.LEFT);
+						break;
+					case Controls.RIGHT_SPLIT: 
+						if (splitPlayer != null)
+							splitPlayer.tryMove(Dirs.RIGHT);
+						break;
+				}
 			}
 		}
 		
@@ -346,89 +315,151 @@ package
 			{
 				frameCounter = 0;
 				
+				// -- DEATH CHECK
+				if ((mainPlayer == null) && (splitPlayer == null))
+				{
+					dieImmediately();
+					return;
+				}
+				
 				// -- STEP
-				mainPlayer.step();
+				if (mainPlayer != null)
+					mainPlayer.step();
 				if (splitPlayer != null)
 					splitPlayer.step();
 				
-				// -- DEATH CHECKS
+				// -- OFFSCREEN YET?
 				if (!died)
 				{
-					if (isPlayerOutOfBounds(PLAYER_MAIN) || isPlayerOutOfBounds(PLAYER_SPLIT))
+					if (isPartOutOfBounds(mainPlayer) || (splitPlayer != null && isPartOutOfBounds(splitPlayer)))
 					{
-						trace("DOOD, DOOD, DOOD, DOOD, DOOD");
 						died = true;
-						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForMain);
-						stage.removeEventListener(KeyboardEvent.KEY_DOWN, onKeyDownForSplit);
 					}
 				}
 				else
 				{
 					//the player already died. Keep moving until the last parts are completely offscreen, then end the game.
-					if (mainSnakeBodyParts[mainSnakeBodyParts.length - 1] != null)
+					if (mainPlayer != null)
 					{
-						if (isPartOutOfBounds(mainSnakeBodyParts[mainSnakeBodyParts.length - 1]))
+						if (isPartOutOfBounds(mainTail))
 						{
-							for (var mp:uint = 0; mp < mainSnakeBodyParts.length; mp++)
+							var main:Array = mainPlayer.getSnake();
+							for each (var mp:BodyPart in main)
 							{
-								if (contains(mainSnakeBodyParts[mp]))
-									removeChild(mainSnakeBodyParts[mp]);
+								if (contains(mp))
+									removeChild(mp);
 							}
-							mainSnakeBodyParts = [];
 							mainPlayer = null;
 						}
 					}
 					
-					if (splitSnakeBodyParts != null)
+					if (splitPlayer != null)
 					{
-						if (splitSnakeBodyParts[0] != null)
+						if (isPartOutOfBounds(splitTail))
 						{
-							if (isPartOutOfBounds(splitSnakeBodyParts[0]))
+							var split:Array = splitPlayer.getSnake();
+							for each (var sp:BodyPart in split)
 							{
-								for (var sp:uint = 0; sp < splitSnakeBodyParts.length; sp++)
-								{
-									if (contains(splitSnakeBodyParts[sp]))
-										removeChild(splitSnakeBodyParts[sp]);
-								}
-								splitSnakeBodyParts = null;
-								splitPlayer = null;
+								if (contains(sp))
+									removeChild(sp);
 							}
+							splitPlayer = null;
 						}
 					}
-					
-					if ((mainPlayer == null) && (splitPlayer == null))
-					{
-						dieImmediately();
-					}
+					return;
 				}
 				
 				// -- COLLISION
 				if (splitPlayer != null)
 				{
-					if (mainSnakeBodyParts[mainSnakeBodyParts.length - 1].hitTestObject(splitSnakeBodyParts[splitSnakeBodyParts.length - 1]))
+					if (!died)
 					{
-						trace("REATTACH REATTACH REATTACH REATTACH");
-						promptMessage(Messages.REATTACH);
+						if (mainTail.hitTestObject(splitPlayer))
+						{
+							trace("REATTACH REATTACH REATTACH REATTACH");
+							promptMessage(Messages.REATTACH);
+							stage.addEventListener(Event.ENTER_FRAME, animationStepPrompt);
+							var timer:Timer = new Timer(2000, 1);
+							timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void
+								{
+									died = false;
+									
+									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
+									
+									/*var biter:BodyPart = splitSnakeBodyParts.pop();
+									   biter.partBehind.parentPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1];
+									   biter.partBehind.setMovements(biter.getPrevMovements());
+									   mainSnakeBodyParts[mainSnakeBodyParts.length - 1].partBehind = biter.partBehind;
+									   removeChild(biter); //the biting part is gone
+									 biter = null;*/
+									
+									//splitPlayer; //TODO something about splitplayer being 1 length
+									
+									trace(" MAIN ");
+									trace("mt", mainTail);
+									trace("mt id",mainTail.id);
+									trace("mt loc", mainTail.x, mainTail.y);
+									
+									trace(" SPLIT ");
+									trace("s", splitPlayer);
+									trace("s id", splitPlayer.id);
+									trace("s loc", splitPlayer.x, splitPlayer.y);
+									
+									trace(" SPLIT.BEHIND ");
+									trace("SB", splitPlayer.partBehind);
+									trace("SB id", splitPlayer.partBehind.id);
+									trace("SB loc", splitPlayer.partBehind.x, splitPlayer.partBehind.y);
+									
+									trace(mainPlayer.traceEverythingBehindYou([]));
+									
+									splitPlayer.partBehind.parentPart = mainTail;
+									mainTail.partBehind = splitPlayer.partBehind;
+									removeChild(splitPlayer); ///splitplayer zit nog in de splitsnake array, waardoor dat misschien collision errors geeft (hit plek blijf je op doodgaan)
+									splitPlayer = null;
+									
+									mainTail = mainPlayer.getTail();
+									trace('new tail is ' + mainTail.id);
+									
+									trace(mainPlayer.traceEverythingBehindYou([]));
+									trace("length just AFTER hitting", mainPlayer.traceLength());
+									
+									trace("Everything is automatically copied over");
+									
+									mainPlayer.traceEverythingBehindYou();
+									
+									mainPlayer.turnIntoColor(Color.PINK, true);
+									mainPlayer.turnIntoColor(Color.PINK_HEAD); //didn't happen..?
+									
+									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
+									removeChild(prompt);
+									stage.addEventListener(Event.ENTER_FRAME, onEnterFrame); //resume
+								});
+							stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame); //pause a bit
+							timer.start();
+							return;
+						}
 					}
 				}
 				
-				for (var i:uint = 0; i < mainSnakeBodyParts.length; i++)
+				var mainParts:Array = mainPlayer.getSnake();
+				for each (var mPart:BodyPart in mainParts)
 				{
-					var mPart:BodyPart = mainSnakeBodyParts[i];
-					
 					if (splitPlayer != null)
 					{
 						// player already hit himself once, and should die hitting something again
 						if (mPart != mainPlayer && mainPlayer.hitTestObject(mPart) && !died)
 						{
+							trace("HIERDOOD");
 							dieImmediately();
 						}
 						
-						for (var s:uint = 0; s < splitSnakeBodyParts.length; s++)
+						var splitParts:Array = splitPlayer.getSnake();
+						
+						for each (var sPart:BodyPart in splitParts)
 						{
-							var sPart:BodyPart = splitSnakeBodyParts[s];
-							if (mPart.hitTestObject(sPart))
-							{
+							if (mPart.hitTestObject(sPart)) {
+								trace("mPart " + mPart.id + " hits sPart " + sPart + ":::     s(" + sPart.x + "," + sPart.y + ")  m(" + mPart.x + "," + mPart.y + ")");
+								trace("JERAAKTESPLITPART DOOD");
 								dieImmediately();
 							}
 						}
@@ -440,8 +471,8 @@ package
 						{
 							trace("HIT YOURSELF at " + mPart.x + "," + mPart.y);
 							splitUp(mPart);
+							return;
 						}
-						
 					}
 				}
 				
@@ -449,10 +480,11 @@ package
 				{
 					if (pickup.hitTestObject(mainPlayer))
 					{
-						var newTail:BodyPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1].calculateExtension();
-						mainSnakeBodyParts.push(newTail);
+						var newTail:BodyPart = mainTail.calculateExtension();
+						mainTail = newTail;
 						mainPlayer.traceEverythingBehindYou();
 						addChild(newTail);
+						
 						if (splitPlayer != null)
 							newTail.turnIntoColor(Color.RED);
 						
@@ -461,19 +493,6 @@ package
 					}
 				}
 			}
-		}
-		
-		private function isPlayerOutOfBounds(player:int):Boolean
-		{
-			var p:BodyPart = players[player];
-			if (p == null)
-				return false;
-			
-			if (p.x < 0 || p.y < 0 || p.x > stage.stageWidth || p.y > stage.stageHeight)
-			{
-				return true;
-			}
-			return false;
 		}
 		
 		private function isPartOutOfBounds(mPart:BodyPart):Boolean
@@ -490,15 +509,13 @@ package
 		
 		private function isPositionFree(x:int, y:int):Boolean
 		{
-			var probably:Boolean = true;
-			
-			for each (var p:BodyPart in mainSnakeBodyParts)
+			for each (var p:BodyPart in mainPlayer.getSnake())
 			{
-				if (p.x == x && p.y == y)
-					probably = false;
+			   if (p.x == x && p.y == y)
+			   return false;
 			}
 			
-			return probably;
+			return true;
 		}
 	}
 

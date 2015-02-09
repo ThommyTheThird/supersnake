@@ -15,6 +15,7 @@ package
 		
 		public static const RED_HEAD:uint = 0xAA0000;
 		public static const BLUE_HEAD:uint = 0x0000AA;
+		public static const PINK_HEAD:uint = 0xAA00AA;
 		
 		//OTHER
 		public static const WHITE:uint = 0xFFFFFF;
