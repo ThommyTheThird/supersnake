@@ -51,6 +51,8 @@ package
 				makeTextField(i)();
 			}
 			
+			var offset:int = 40;
+			
 			//main player
 			var mainTf:TextField = new TextField();
 			mainTf.selectable = false;
@@ -65,7 +67,6 @@ package
 			addChild(mainTf);
 			addChild(mainPink);
 			
-			var offset:int = 40;
 			//split red
 			var arrTf:TextField = new TextField();
 			arrTf.selectable = false;

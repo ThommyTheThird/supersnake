@@ -77,6 +77,12 @@ package
 			}
 		}
 		
+		public function completelyDetach():void
+		{
+			if (parentPart != null) parentPart.partBehind = null;
+			if (partBehind != null) partBehind.parentPart = null;
+		}
+		
 		public function tryMove(direction:String):void
 		{
 			switch (direction)
@@ -121,8 +127,6 @@ package
 			this.movingDown = movements[1];
 			this.movingLeft = movements[2];
 			this.movingRight = movements[3];
-			
-			trace(id, getMovements());
 		}
 		
 		public function getMovements():Array
@@ -228,12 +232,14 @@ package
 			else 					return snake;
 		}
 		
-		public function turnIntoColor(color:uint):void
+		public function turnIntoColor(color:uint, recursive:Boolean = false):void
 		{
 			square.graphics.clear();
 			square.graphics.beginFill(color);
 			square.graphics.drawRect(0, 0, bodySize - 2, bodySize - 2);
 			square.graphics.endFill();
+			
+			if (recursive && partBehind != null) partBehind.turnIntoColor(color, recursive);
 		}
 		
 		public function traceEverythingBehindYou(everything:Array = null):void

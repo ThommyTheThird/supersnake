@@ -108,8 +108,12 @@ package
 			trace('splitup');
 			var mainSnake:Array = mainPlayer.getSnake();
 			var hitIndex:int = mainSnake.indexOf(partHit);
-			partHit.parentPart = null;
-			partHit.partBehind = null;
+			//partHit.parentPart.partBehind = null;
+			//partHit.parentPart = null;
+			//partHit.partBehind.parentPart = null;
+			//partHit.partBehind = null;
+			partHit.completelyDetach();
+			
 			if (contains(partHit))
 			{
 				trace('parthit id was  ' + partHit.id + ',  deze gaat dood en weg');
@@ -406,7 +410,6 @@ package
 									trace("SB id", splitPlayer.partBehind.id);
 									trace("SB loc", splitPlayer.partBehind.x, splitPlayer.partBehind.y);
 									
-									trace("length just before hitting", mainPlayer.traceLength());
 									trace(mainPlayer.traceEverythingBehindYou([]));
 									
 									splitPlayer.partBehind.parentPart = mainTail;
@@ -414,20 +417,18 @@ package
 									removeChild(splitPlayer); ///splitplayer zit nog in de splitsnake array, waardoor dat misschien collision errors geeft (hit plek blijf je op doodgaan)
 									splitPlayer = null;
 									
+									mainTail = mainPlayer.getTail();
+									trace('new tail is ' + mainTail.id);
+									
 									trace(mainPlayer.traceEverythingBehindYou([]));
 									trace("length just AFTER hitting", mainPlayer.traceLength());
 									
 									trace("Everything is automatically copied over");
+									
 									mainPlayer.traceEverythingBehindYou();
 									
-									//splitSnakeBodyParts = null;
-									
-									//for each (var part:BodyPart in mainSnakeBodyParts)
-									//{
-									//part.turnIntoColor(Color.PINK);
-									//}
-									mainPlayer.turnIntoColor(Color.PINK_HEAD);
-									mainTail.turnIntoColor(0x123456);
+									mainPlayer.turnIntoColor(Color.PINK, true);
+									mainPlayer.turnIntoColor(Color.PINK_HEAD); //didn't happen..?
 									
 									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
 									removeChild(prompt);
@@ -441,13 +442,8 @@ package
 				}
 				
 				var mainParts:Array = mainPlayer.getSnake();
-				var mstr:String = "";
-				for each(var empee:BodyPart in mainParts) mstr += empee.id + ",";
-				trace('mainparts', mstr);
-				
 				for each (var mPart:BodyPart in mainParts)
 				{
-					trace("Checking MEMEMEMMMpart ", mPart.id + ", at " + mPart.x + "," + mPart.y);
 					if (splitPlayer != null)
 					{
 						// player already hit himself once, and should die hitting something again
@@ -458,13 +454,9 @@ package
 						}
 						
 						var splitParts:Array = splitPlayer.getSnake();
-						var str:String = "";
-						for each(var espee:BodyPart in splitParts) str += espee.id + ",";
-						trace('splitParts', str);
 						
 						for each (var sPart:BodyPart in splitParts)
 						{
-							trace("Checking SSSSpart ", mPart.id + ", at " + sPart.x + "," + sPart.y);
 							if (mPart.hitTestObject(sPart)) {
 								trace("mPart " + mPart.id + " hits sPart " + sPart + ":::     s(" + sPart.x + "," + sPart.y + ")  m(" + mPart.x + "," + mPart.y + ")");
 								trace("JERAAKTESPLITPART DOOD");
@@ -479,6 +471,7 @@ package
 						{
 							trace("HIT YOURSELF at " + mPart.x + "," + mPart.y);
 							splitUp(mPart);
+							return;
 						}
 					}
 				}
