@@ -139,6 +139,15 @@ package
 			return prevMovements;
 		}
 		
+		public function getCurrentDirection():String
+		{
+			if (movingUp) 		return Dirs.UP;
+			if (movingDown) 	return Dirs.DOWN;
+			if (movingLeft) 	return Dirs.LEFT;
+			if (movingRight) 	return Dirs.RIGHT;
+			return "none"; //we wouldn't like to see this
+		}
+		
 		private function resetMovements():void
 		{
 			this.movingUp = false;
