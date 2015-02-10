@@ -42,10 +42,6 @@ package
 		
 		/*
 		 * TODO
-		 *** Snake kan NOG ALTIJD een 180 doen, als je cheat (snel UP en LEFT te doen in dezelfde 'tick');
-		 *
-		 *** BLAUW kan je staart bijten en weer terugkomen.
-		 *** Als main offscreen gaat null errors
 		 *** splitplayer kan 1 length zijn, dan gaat reattach fout (partbehind null) en... het is gewoon dom om 1 stukje te hebben
 		 */
 		
@@ -93,7 +89,6 @@ package
 		
 		private function makeMainPlayer():void
 		{
-			//var movements:Array = [false, false, false, false];
 			mainPlayer = new BodyPart(tileSize);
 			mainTail = mainPlayer;
 			mainPlayer.turnIntoColor(Color.PINK_HEAD);
@@ -108,10 +103,6 @@ package
 			trace('splitup');
 			var mainSnake:Array = mainPlayer.getSnake();
 			var hitIndex:int = mainSnake.indexOf(partHit);
-			//partHit.parentPart.partBehind = null;
-			//partHit.parentPart = null;
-			//partHit.partBehind.parentPart = null;
-			//partHit.partBehind = null;
 			partHit.completelyDetach();
 			
 			if (contains(partHit))
@@ -119,20 +110,6 @@ package
 				trace('parthit id was  ' + partHit.id + ',  deze gaat dood en weg');
 				removeChild(partHit);
 			}
-			
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			//MPART 14 en SPART 14 zijn hetzelfde en raken elkaar direct na het splitten
-			
 			
 			var whatRemainsOfMain:Array = mainSnake.slice(0, hitIndex);
 			trace("whatRemainsOfMain[whatRemainsOfMain.length - 1]  partbehind ==== nulllll");
@@ -222,30 +199,6 @@ package
 				TICK_FRAMES = SLOW;
 			else
 				TICK_FRAMES = FAST;
-		}
-		
-		private function canITurnThisWay(playerPart:BodyPart, direction:String):Boolean
-		{
-			//this needs to be moved to BodyPart, and it needs to check prevMovements (so he can't do a 180)
-			//in fact, the whole "here's your input" can go to BodyPart, MAIN just interprets e.keyCode -> movement attempt
-			
-			switch (direction)
-			{
-				case "UP": 
-					return !playerPart.movingDown;
-					break;
-				case "DOWN": 
-					return !playerPart.movingUp;
-					break;
-				case "LEFT": 
-					return !playerPart.movingRight;
-					break;
-				case "RIGHT": 
-					return !playerPart.movingLeft;
-					break;
-				default: 
-					return true;
-			}
 		}
 		
 		//Event Listeners
@@ -383,55 +336,22 @@ package
 							timer.addEventListener(TimerEvent.TIMER_COMPLETE, function(e:TimerEvent):void
 								{
 									died = false;
-									
 									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
-									
-									/*var biter:BodyPart = splitSnakeBodyParts.pop();
-									   biter.partBehind.parentPart = mainSnakeBodyParts[mainSnakeBodyParts.length - 1];
-									   biter.partBehind.setMovements(biter.getPrevMovements());
-									   mainSnakeBodyParts[mainSnakeBodyParts.length - 1].partBehind = biter.partBehind;
-									   removeChild(biter); //the biting part is gone
-									 biter = null;*/
-									
-									//splitPlayer; //TODO something about splitplayer being 1 length
-									
-									trace(" MAIN ");
-									trace("mt", mainTail);
-									trace("mt id",mainTail.id);
-									trace("mt loc", mainTail.x, mainTail.y);
-									
-									trace(" SPLIT ");
-									trace("s", splitPlayer);
-									trace("s id", splitPlayer.id);
-									trace("s loc", splitPlayer.x, splitPlayer.y);
-									
-									trace(" SPLIT.BEHIND ");
-									trace("SB", splitPlayer.partBehind);
-									trace("SB id", splitPlayer.partBehind.id);
-									trace("SB loc", splitPlayer.partBehind.x, splitPlayer.partBehind.y);
-									
-									trace(mainPlayer.traceEverythingBehindYou([]));
 									
 									splitPlayer.partBehind.parentPart = mainTail;
 									mainTail.partBehind = splitPlayer.partBehind;
-									removeChild(splitPlayer); ///splitplayer zit nog in de splitsnake array, waardoor dat misschien collision errors geeft (hit plek blijf je op doodgaan)
+									removeChild(splitPlayer);
 									splitPlayer = null;
 									
 									mainTail = mainPlayer.getTail();
-									trace('new tail is ' + mainTail.id);
-									
-									trace(mainPlayer.traceEverythingBehindYou([]));
-									trace("length just AFTER hitting", mainPlayer.traceLength());
-									
-									trace("Everything is automatically copied over");
-									
-									mainPlayer.traceEverythingBehindYou();
 									
 									mainPlayer.turnIntoColor(Color.PINK, true);
-									mainPlayer.turnIntoColor(Color.PINK_HEAD); //didn't happen..?
+									mainPlayer.turnIntoColor(Color.PINK_HEAD);
 									
 									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
 									removeChild(prompt);
+									prompt = null;
+									
 									stage.addEventListener(Event.ENTER_FRAME, onEnterFrame); //resume
 								});
 							stage.removeEventListener(Event.ENTER_FRAME, onEnterFrame); //pause a bit
