@@ -20,17 +20,14 @@ package
 	{
 		private var fps:int = stage.frameRate;
 		private var frameCounter:int = 0;
-		private static var FAST:int = 10;
-		private static var SLOW:int = 1;
-		private static var TICK_FRAMES:int = FAST;
+		
+		private static var TICK_FRAMES:int = Options.FAST;
 		
 		private var prompt:TextField;
 		private var promptFormat:TextFormat = new TextFormat(null, 32, Color.RED, true, false, false);
 		private var help:HelpScreen;
 		
 		private var died:Boolean = false;
-		
-		private var tileSize:int = 20;
 		
 		private var mainPlayer:BodyPart;
 		private var splitPlayer:BodyPart;
@@ -89,12 +86,12 @@ package
 		
 		private function makeMainPlayer():void
 		{
-			mainPlayer = new BodyPart(tileSize);
+			mainPlayer = new BodyPart(Options.TILESIZE);
 			mainTail = mainPlayer;
 			mainPlayer.turnIntoColor(Color.PINK_HEAD);
 			mainPlayer.setMovements([false, false, false, false]);
-			mainPlayer.x = 20 * tileSize;
-			mainPlayer.y = 15 * tileSize;
+			mainPlayer.x = (((stage.stageWidth / Options.TILESIZE) / 2) % Options.TILESIZE) * Options.TILESIZE;
+			mainPlayer.y = ((((stage.stageHeight / Options.TILESIZE) / 2)) % Options.TILESIZE) * Options.TILESIZE;
 			addChild(mainPlayer);
 		}
 		
@@ -107,31 +104,23 @@ package
 			
 			if (contains(partHit))
 			{
-				trace('parthit id was  ' + partHit.id + ',  deze gaat dood en weg');
 				removeChild(partHit);
 			}
 			
 			var whatRemainsOfMain:Array = mainSnake.slice(0, hitIndex);
-			trace("whatRemainsOfMain[whatRemainsOfMain.length - 1]  partbehind ==== nulllll");
-			whatRemainsOfMain[whatRemainsOfMain.length - 1].partBehind = null; //chopped off
-			mainPlayer.traceEverythingBehindYou(['main']);
-			
-			for each (var mPart:BodyPart in whatRemainsOfMain)
-			{
-				mPart.turnIntoColor(Color.RED);
-			}
-			mainPlayer.turnIntoColor(Color.RED_HEAD);
-			mainTail = mainPlayer.getTail();
+			var newMainTail:BodyPart = whatRemainsOfMain[whatRemainsOfMain.length - 1];
+			newMainTail.partBehind = null; //chopped off
+			mainTail = newMainTail;
 			
 			var splitSnake:Array = mainSnake.slice(hitIndex + 1);
 			if (splitSnake.length > 0)
 			{
+				mainPlayer.turnIntoColor(Color.RED, true); //recursive to the tail
+				mainPlayer.turnIntoColor(Color.RED_HEAD);
+				
 				splitSnake[0].parentPart = null;
-				splitSnake[0].traceEverythingBehindYou(["split[0]"]);
 				splitSnake[0].reverse();
-				splitSnake[0].traceEverythingBehindYou(["SplitSnake[0] after rev"]);
 				splitPlayer = splitSnake[splitSnake.length - 1];
-				splitPlayer.traceEverythingBehindYou(["SPLITPLAYER"]);
 				splitTail = splitPlayer.getTail();
 				
 				splitPlayer.turnIntoColor(Color.BLUE_HEAD);
@@ -142,17 +131,12 @@ package
 			}
 		}
 		
-		private function resetMovements(part:BodyPart):void
-		{
-			part.setMovements([false, false, false, false]);
-		}
-		
 		private function spawnPickup():void
 		{
 			var xPos:int = Math.floor(Math.random() * stage.stageWidth / 4);
-			xPos -= xPos % tileSize; //make it fall neatly in a tile
+			xPos -= xPos % Options.TILESIZE; //make it fall neatly in a tile
 			var yPos:int = Math.floor(Math.random() * stage.stageHeight / 4);
-			yPos -= yPos % tileSize;
+			yPos -= yPos % Options.TILESIZE;
 			
 			if (isPositionFree(xPos, yPos))
 			{
@@ -195,10 +179,10 @@ package
 		
 		private function toggleSpeed():void
 		{
-			if (TICK_FRAMES == FAST)
-				TICK_FRAMES = SLOW;
+			if (TICK_FRAMES == Options.FAST)
+				TICK_FRAMES = Options.SLOW;
 			else
-				TICK_FRAMES = FAST;
+				TICK_FRAMES = Options.FAST;
 		}
 		
 		//Event Listeners
@@ -220,6 +204,24 @@ package
 					break;
 				case Controls.TOGGLE_SPEED: 
 					toggleSpeed();
+					break;
+				case Controls.SMALL:
+					if (Options.TILESIZE != Options.SMALL_SIZE) {
+						Options.TILESIZE = Options.SMALL_SIZE;
+						startOrRestartGame();
+					}
+					break;
+				case Controls.NORMAL:
+					if (Options.TILESIZE != Options.MEDIUM_SIZE) {
+						Options.TILESIZE = Options.MEDIUM_SIZE;
+						startOrRestartGame();
+					}
+					break;
+				case Controls.LARGE:
+					if (Options.TILESIZE != Options.LARGE_SIZE) {
+						Options.TILESIZE = Options.LARGE_SIZE;
+						startOrRestartGame();
+					}
 					break;
 			}
 			
@@ -338,8 +340,11 @@ package
 									died = false;
 									stage.removeEventListener(Event.ENTER_FRAME, animationStepPrompt);
 									
-									splitPlayer.partBehind.parentPart = mainTail;
-									mainTail.partBehind = splitPlayer.partBehind;
+									if (splitPlayer.partBehind != null) {
+										splitPlayer.partBehind.parentPart = mainTail;
+										mainTail.partBehind = splitPlayer.partBehind;
+									}
+									
 									removeChild(splitPlayer);
 									splitPlayer = null;
 									

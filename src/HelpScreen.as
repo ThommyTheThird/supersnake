@@ -54,6 +54,7 @@ package
 			
 			makeBackground();
 			makeMessages();
+			makeGameExplanation();
 			makeSnakes();
 		}
 		private function onEnterFrame(e:Event):void
@@ -101,27 +102,37 @@ package
 			}
 		}
 		
-		private function makeTextField(i:int):Function
+		private function makeTextField(messages:Array, i:int, topToBottom:Boolean = true):Function
 		{
 			return function():void
 			{
+				trace('making tf at ' + i + "(i+1 * spacing is " + ((i + 1) * VERT_SPACING));
 				var tf:TextField = new TextField();
 				tf.autoSize = TextFieldAutoSize.CENTER;
 				tf.selectable = false;
-				tf.text = Messages.ALL_TIPS[i];
+				tf.text = messages[i];
 				tf.setTextFormat(format);
-				tf.x = stage.stageWidth / 2;
-				tf.y = stage.stageHeight - ((i + 1) * VERT_SPACING) - 120;
+				tf.x = stage.stageWidth / 2 - (tf.textWidth / 2);
+				tf.y = stage.stageHeight - ((i + 1) * VERT_SPACING) - 60;
+				if (topToBottom) tf.y = stage.stageHeight - tf.y;
+				if (topToBottom) tf.y -= 20;
 				addChild(tf);
 			}
 		}
 		
 		private function makeMessages():void 
 		{
-			format = new TextFormat(null, 18, Color.BLACK, true, false, false);
-			for (var i:int = Messages.ALL_TIPS.length - 1; i >= 0; i--)
+			format = new TextFormat(null, 18, Color.BLACK, false);
+			for (var i:int = 0; i < Messages.ALL_TIPS.length; i++)
 			{
-				makeTextField(i)();
+				makeTextField(Messages.ALL_TIPS, i, false)();
+			}
+		}
+		private function makeGameExplanation():void
+		{
+			format = new TextFormat("arial", 20, Color.BLACK, true);
+			for (var i:int = 0; i < Messages.GAME_EXPLANATION.length; i++) {
+				makeTextField(Messages.GAME_EXPLANATION, i)();
 			}
 		}
 		

@@ -8,7 +8,6 @@ package
 	 */
 	public class Pickup extends Sprite
 	{
-		private var tileSize:int = 20;
 		private var circle:Sprite;
 		
 		public function Pickup(xPos:int, yPos:int)
@@ -22,7 +21,7 @@ package
 		{
 			circle = new Sprite();
 			circle.graphics.beginFill(Color.BLUE);
-			circle.graphics.drawCircle((tileSize / 2), (tileSize / 2), (tileSize / 2) - 2);
+			circle.graphics.drawCircle((Options.TILESIZE / 2), (Options.TILESIZE / 2), (Options.TILESIZE / 2) - 2);
 			circle.graphics.endFill();
 			addChild(circle);
 		}

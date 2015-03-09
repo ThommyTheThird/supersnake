@@ -13,7 +13,6 @@ package
 		private var bodySize:int;
 		private var square:Sprite;
 		
-		private var idtf:TextField;
 		public var id:int;
 		private static var ID:int;
 		
@@ -42,19 +41,8 @@ package
 			this.id = ID++;
 			
 			square = new Sprite();
-			turnIntoColor(Color.PINK);
-			square.x = 1;
-			square.y = 1;
+			turnIntoColor(Color.PINK); //also (re)creates the square with padding
 			addChild(square);
-			
-			idtf = new TextField();
-			idtf.width = 18;
-			idtf.height = 18;
-			idtf.x = 1;
-			idtf.y = 1;
-			idtf.text = id+"";
-			idtf.setTextFormat(new TextFormat(null, 10, 0xffffff));
-			addChild(idtf);
 		}
 		
 		public function step():void
@@ -148,7 +136,7 @@ package
 			return "none"; //we wouldn't like to see this
 		}
 		
-		private function resetMovements():void
+		public function resetMovements():void
 		{
 			this.movingUp = false;
 			this.movingDown = false;
@@ -245,7 +233,7 @@ package
 		{
 			square.graphics.clear();
 			square.graphics.beginFill(color);
-			square.graphics.drawRect(0, 0, bodySize - 2, bodySize - 2);
+			square.graphics.drawRect(1, 1, bodySize - 2, bodySize - 2);
 			square.graphics.endFill();
 			
 			if (recursive && partBehind != null) partBehind.turnIntoColor(color, recursive);

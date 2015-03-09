@@ -22,6 +22,10 @@ package
 		public static const RESTART:uint = Keyboard.R;
 		public static const QUIT:uint = Keyboard.Q;
 		
+		public static const SMALL:uint = Keyboard.F1;
+		public static const NORMAL:uint = Keyboard.F2;
+		public static const LARGE:uint = Keyboard.F3;
+		
 		public static const HELP:uint = Keyboard.H;
 		public static const HELP_ALT:uint = Keyboard.C;
 		public static const HELP_ESC:uint = Keyboard.ESCAPE;
