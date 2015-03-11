@@ -83,9 +83,10 @@ package
 			mainPlayer = new BodyPart(Options.TILESIZE);
 			mainTail = mainPlayer;
 			mainPlayer.turnIntoColor(Color.PINK_HEAD);
-			mainPlayer.setMovements([false, false, false, false]);
-			mainPlayer.x = (((stage.stageWidth / Options.TILESIZE) / 2) % Options.TILESIZE) * Options.TILESIZE;
-			mainPlayer.y = ((((stage.stageHeight / Options.TILESIZE) / 2)) % Options.TILESIZE) * Options.TILESIZE;
+			
+			mainPlayer.x = ((stage.stageWidth / Options.TILESIZE) / 2) * Options.TILESIZE;
+			mainPlayer.y = (((stage.stageHeight / Options.TILESIZE) / 2)) * Options.TILESIZE;
+			
 			addChild(mainPlayer);
 		}
 		
@@ -201,7 +202,7 @@ package
 						startOrRestartGame();
 					}
 					break;
-				case Controls.NORMAL:
+				case Controls.MEDIUM:
 					if (Options.TILESIZE != Options.MEDIUM_SIZE) {
 						Options.TILESIZE = Options.MEDIUM_SIZE;
 						startOrRestartGame();

@@ -2,6 +2,7 @@ package
 {
 	import flash.display.Sprite;
 	import flash.events.Event;
+	import flash.events.KeyboardEvent;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
@@ -14,7 +15,7 @@ package
 	{
 		private var frameCounter:int = 0;
 		
-		private var size:int = 20;
+		private var size:int = Options.MEDIUM_SIZE;
 		private var tilesWidth:int;
 		private var tilesHeight:int;
 		private var padding:int = 1;
@@ -25,6 +26,8 @@ package
 		
 		private var red:BodyPart;
 		private var blue:BodyPart;
+		
+		private var pinkSizeDemo:BodyPart;
 		
 		private static const VERT_SPACING:int = 30;
 		
@@ -44,6 +47,13 @@ package
 		private function onAdded(e:Event):void
 		{
 			this.removeEventListener(Event.ADDED, onAdded);
+			stage.addEventListener(KeyboardEvent.KEY_UP, function(e:KeyboardEvent):void {
+				if (visible) {
+					if (e.keyCode == Controls.SMALL) makeSizeDemo(Options.SMALL_SIZE);
+					if (e.keyCode == Controls.MEDIUM) makeSizeDemo(Options.MEDIUM_SIZE);
+					if (e.keyCode == Controls.LARGE) makeSizeDemo(Options.LARGE_SIZE);
+				}
+			});
 			
 			tilesWidth = stage.stageWidth / size;
 			tilesHeight = stage.stageHeight / size;
@@ -51,8 +61,10 @@ package
 			makeBackground();
 			makeMessages();
 			makeGameExplanation();
+			makeSizeDemo(Options.TILESIZE);
 			makeSnakes();
 		}
+		
 		private function onEnterFrame(e:Event):void
 		{
 			if (++frameCounter > (stage.frameRate / Options.FAST)) {
@@ -138,6 +150,16 @@ package
 			bg.graphics.drawRect(0, 0, stage.stageWidth, stage.stageHeight);
 			bg.graphics.endFill();
 			addChild(bg);
+		}
+		
+		private function makeSizeDemo(size:int):void {
+			if (pinkSizeDemo != null && contains(pinkSizeDemo)) removeChild(pinkSizeDemo);
+			
+			pinkSizeDemo = new BodyPart(size);
+			pinkSizeDemo.x = stage.stageWidth/2 - size/2;
+			pinkSizeDemo.y = stage.stageHeight/2 - size/2;
+			
+			addChild(pinkSizeDemo);
 		}
 		
 		private function makeSnakes():void
