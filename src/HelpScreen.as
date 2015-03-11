@@ -28,8 +28,6 @@ package
 		private var red:BodyPart;
 		private var blue:BodyPart;
 		
-		private static var TICKS:int = 10; //should be in sync with Main.TICK_FRAMES, so.. not another field here...
-		
 		private static const VERT_SPACING:int = 30;
 		
 		public function HelpScreen()
@@ -59,7 +57,7 @@ package
 		}
 		private function onEnterFrame(e:Event):void
 		{
-			if (++frameCounter > (stage.frameRate / TICKS)) {
+			if (++frameCounter > (stage.frameRate / Options.FAST)) {
 				frameCounter = 0;
 				
 				red.step();
@@ -106,7 +104,6 @@ package
 		{
 			return function():void
 			{
-				trace('making tf at ' + i + "(i+1 * spacing is " + ((i + 1) * VERT_SPACING));
 				var tf:TextField = new TextField();
 				tf.autoSize = TextFieldAutoSize.CENTER;
 				tf.selectable = false;

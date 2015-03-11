@@ -1,8 +1,6 @@
 package
 {
 	import flash.display.Sprite;
-	import flash.text.TextField;
-	import flash.text.TextFormat;
 	
 	/**
 	 * ...
@@ -26,7 +24,6 @@ package
 		
 		public var prevMovements:Array;
 		
-		//public function BodyPart(size:int, movements:Array, parent:BodyPart = null) 
 		public function BodyPart(size:int, parent:BodyPart = null)
 		{
 			this.bodySize = size;
@@ -147,11 +144,7 @@ package
 		public function calculateExtension():BodyPart
 		{
 			trace("part " + id + " is calcing extension at", this.x, this.y);
-			if (partBehind != null)
-			{
-				trace("There's already something behind, wtf you doing son?");
-			}
-			else
+			if (partBehind == null)
 			{
 				partBehind = new BodyPart(bodySize, this);
 				partBehind.setMovements(prevMovements);

@@ -1,16 +1,15 @@
 package
 {
 	import BodyPart;
-	import flash.events.TimerEvent;
-	import flash.utils.Timer;
 	import flash.display.Sprite;
 	import flash.events.Event;
 	import flash.events.KeyboardEvent;
+	import flash.events.TimerEvent;
 	import flash.system.System;
 	import flash.text.TextField;
 	import flash.text.TextFieldAutoSize;
 	import flash.text.TextFormat;
-	import flash.ui.Keyboard;
+	import flash.utils.Timer;
 	
 	/**
 	 * ...
@@ -37,11 +36,6 @@ package
 		
 		private var pickup:Pickup;
 		
-		/*
-		 * TODO
-		 *** splitplayer kan 1 length zijn, dan gaat reattach fout (partbehind null) en... het is gewoon dom om 1 stukje te hebben
-		 */
-		
 		public function Main():void
 		{
 			if (stage)
@@ -53,7 +47,7 @@ package
 		private function init(e:Event = null):void
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, init);
-			// entry point
+			
 			help = new HelpScreen();
 			stage.addChild(help);
 			
@@ -124,10 +118,6 @@ package
 				splitTail = splitPlayer.getTail();
 				
 				splitPlayer.turnIntoColor(Color.BLUE_HEAD);
-			}
-			else
-			{
-				trace("YOU BROKE OFF THE LAST PIECE OR SOMETHING? WHAT? NOW ITS JUST DEAD DUDE?");
 			}
 		}
 		
@@ -374,7 +364,6 @@ package
 						// player already hit himself once, and should die hitting something again
 						if (mPart != mainPlayer && mainPlayer.hitTestObject(mPart) && !died)
 						{
-							trace("HIERDOOD");
 							dieImmediately();
 						}
 						
@@ -383,8 +372,6 @@ package
 						for each (var sPart:BodyPart in splitParts)
 						{
 							if (mPart.hitTestObject(sPart)) {
-								trace("mPart " + mPart.id + " hits sPart " + sPart + ":::     s(" + sPart.x + "," + sPart.y + ")  m(" + mPart.x + "," + mPart.y + ")");
-								trace("JERAAKTESPLITPART DOOD");
 								dieImmediately();
 							}
 						}
