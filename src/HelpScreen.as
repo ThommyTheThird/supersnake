@@ -2,11 +2,9 @@ package
 {
 	import flash.display.Sprite;
 	import flash.events.Event;
-	import flash.geom.Rectangle;
 	import flash.text.TextField;
-	import flash.text.TextFormat;
-	import flash.text.Font;
 	import flash.text.TextFieldAutoSize;
+	import flash.text.TextFormat;
 	
 	/**
 	 * ...
